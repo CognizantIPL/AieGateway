@@ -3,13 +3,10 @@ Gateway.Api = (function ($) {
     return {
         initialize: function () {
             var temperature = Gateway.Common.getParameterByName("temperature");
-            var vibration = Gateway.Common.getParameterByName("vibration");
-            var orientation = Gateway.Common.getParameterByName("orientation");
             var wetdry = Gateway.Common.getParameterByName("wetdry");
 
-            if(temperature > 64)
-            {
-                Gateway.Azure.postToAzure(temperature);
+            if (temperature > 64) {
+                Gateway.Azure.postToAzure(temperature, wetdry);
             }
         }
     };
@@ -19,17 +16,29 @@ Gateway.Api = (function ($) {
 
 
 Gateway.Azure = (function ($) {
-    var azureClient = null;
-    var enableLogging = false;
-
     return {
         getTable: function (tableName) {
-            if (!azureClient)
-                azureClient = new WindowsAzure.MobileServiceClient('https://aiemobileservice.azure-mobile.net/', 'NYuUVUztAwEXJQZxOFbppximTExpoh26');
+            var azureClient = new WindowsAzure.MobileServiceClient('https://aiemobileservice.azure-mobile.net/', 'NYuUVUztAwEXJQZxOFbppximTExpoh26');
             return azureClient.getTable(tableName);
         },
 
-        postToAzure: function (temp) {
+        postToAzure: function (temp, wetdry) {
+            var message = (wetdry === "wet") ? "ALERT: Moisture detected" : "ALERT: Temperature threshold exceeded";
+
+            var registeredDevices = Gateway.Azure.getTable("app_device");
+
+            registeredDevices.read().done(function (device) {
+                for (var i = 0; i < device.length; i++) {
+                    if (device[i].channel)
+                        Gateway.Azure.post({ temperature: temp, msg: message, channel: device[i].channel });
+                }
+
+            }, function (err) {
+                alert("Error: " + err);
+            });
+        },
+
+        post: function (messageData) {
             var headers = {
                 'X-ZUMO-APPLICATION': 'NYuUVUztAwEXJQZxOFbppximTExpoh26'
             };
@@ -40,10 +49,10 @@ Gateway.Azure = (function ($) {
                 type: "POST",
                 async: false,
                 headers: headers,
-                data: { insuredId: '1', equipmentId: '2', temperature: temp },
+                data: messageData,
                 dataType: "json",
                 success: function (result) {
-                    Gateway.Common.log("Azure POST succesful");
+                    Gateway.Common.log("Azure POST succesful for channel:" + result.channel);
                 },
                 error: function (result) {
                     Gateway.Common.log(("Error:" + result));
