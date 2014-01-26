@@ -5,7 +5,7 @@ Gateway.Api = (function ($) {
             var temperature = Gateway.Common.getParameterByName("temperature");
             var wetdry = Gateway.Common.getParameterByName("wetdry");
 
-            if (temperature > 64) {
+            if (temperature > 64 || wetdry === "wet") {
                 Gateway.Azure.postToAzure(temperature, wetdry);
             }
         }
