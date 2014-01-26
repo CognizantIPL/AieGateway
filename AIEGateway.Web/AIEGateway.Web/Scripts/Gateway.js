@@ -4,10 +4,22 @@ Gateway.Api = (function ($) {
         initialize: function () {
             var temperature = Gateway.Common.getParameterByName("temperature");
             var wetdry = Gateway.Common.getParameterByName("wetdry");
+            var data = Gateway.Common.getParameterByName("data");
+
+            if (data) {
+                temperature = data.temperature;
+                wetdry = data.wetdry;
+            }
 
             if (temperature > 64 || wetdry === "wet") {
                 Gateway.Azure.postToAzure(temperature, wetdry);
             }
+
+            Gateway.Common.writeToStorage({ t: temperature, w: wetdry, d: new Date() });
+
+            Gateway.Common.readFromStorage();
+
+            $("#btnClearStorage").click(function () { Gateway.Common.clearStorage() });
         }
     };
 
@@ -75,6 +87,22 @@ Gateway.Common = (function ($) {
         },
         log: function (message) {
             $('#errorlog').append($('<li>').text(message));
+        },
+        writeToStorage: function (logData) {
+            var currentData = JSON.parse(localStorage.getItem("loggedData")) || [];
+            currentData.push(logData);
+            localStorage["loggedData"] = JSON.stringify(currentData);
+        },
+        readFromStorage: function (logData) {
+            var loggedData = JSON.parse(localStorage.getItem("loggedData")) || [];
+            $("#storageLog").empty();
+            for (var i = 0; i < loggedData.length; i++) {
+                $("#storageLog").append("<li>" + JSON.stringify(loggedData[i]) + "</li>");
+            }
+        },
+        clearStorage: function (logData) {
+            localStorage.clear();
+            Gateway.Common.readFromStorage();
         }
     };
 
