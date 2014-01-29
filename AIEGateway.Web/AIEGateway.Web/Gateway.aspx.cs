@@ -33,7 +33,13 @@ namespace AIEGateway.Web
             if (string.IsNullOrEmpty(temperature) && string.IsNullOrEmpty(wetDry))
                 return;
             
-            var message = (wetDry == "wet") ? "ALERT: Moisture detected" : "ALERT: Temperature threshold exceeded";
+            var message = "ALERT: Temperature threshold exceeded";
+
+            if (wetDry == "wet")
+            {
+                message = "ALERT: Moisture detected";
+                temperature = "63";
+            }
 
             var channels = _repository.GetRegisteredDevices();
 
