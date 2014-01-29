@@ -11,6 +11,14 @@ Gateway.Api = (function ($) {
                 wetdry = data.wetdry;
             }
 
+            //get POST parameters
+            var postedTemperature = $("input[id$=hdnTemperature]").val();
+            var postedWetDry =  $("input[id$=hdnWetDry]").val()
+            if (postedTemperature.length > 0 || postedWetDry.length > 0) {
+                temperature = postedTemperature;
+                wetdry = postedWetDry;
+            }
+
             if (temperature > 64 || wetdry === "wet") {
                 Gateway.Azure.postToAzure(temperature, wetdry);
             }
