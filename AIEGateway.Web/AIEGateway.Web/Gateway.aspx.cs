@@ -38,7 +38,10 @@ namespace AIEGateway.Web
             if (wetDry == "wet")
             {
                 message = "ALERT: Moisture detected";
-                temperature = "63";
+                if(string.IsNullOrEmpty(temperature))
+                {
+                    temperature = "65";
+                }
             }
 
             var channels = _repository.GetRegisteredDevices();
