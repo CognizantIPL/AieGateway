@@ -60,6 +60,9 @@ namespace AIEGateway.Web
 
         private string SubmitPostRequest(string postData)
         {
+            try
+            {
+
          // variables to store parameter values
             string url = "https://aiemobileservice.azure-mobile.net/tables/equipment_incident";
 
@@ -87,6 +90,8 @@ namespace AIEGateway.Web
                 responseData = responseReader.ReadToEnd();
             }
             return responseData;
+            }
+            catch { return ""; }
         }
 
     }
